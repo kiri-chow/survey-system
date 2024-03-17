@@ -27,4 +27,10 @@ async function connectToDB() {
     return db;
 }
 
-module.exports = { connectToDB, ObjectId };
+// return date in string
+function getDate() {
+    let date = new Date()
+    return date.toISOString();
+}
+
+module.exports = { connectToDB, ObjectId , getDate};
