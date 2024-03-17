@@ -5,7 +5,7 @@ const { connectToDB, ObjectId, getDate } = require('../utils/db');
 
 
 // get surveys
-router.get('/surveys', async function (req, res) {
+router.get('/all', async function (req, res) {
     const db = await connectToDB();
     try {
         const sort = {};
@@ -28,7 +28,7 @@ router.get('/surveys', async function (req, res) {
         // retrieve result
         let result = await db.collection("surveys").find(query).sort(sort).skip(skip).limit(perPage).toArray();
         let total = await db.collection("surveys").countDocuments(query);
-        res.json({
+        res.status(200).json({
             data: result,
             total: total,
             page: page,
@@ -42,14 +42,14 @@ router.get('/surveys', async function (req, res) {
 });
 
 // get a survey
-router.get('/survey/:id', async function (req, res) {
+router.get('/:id', async function (req, res) {
     const db = await connectToDB();
     try {
         const result = await db.collection('surveys').findOne({
             _id: new ObjectId(req.params.id)
         });
         if (result) {
-            res.json(result);
+            res.status(200).json(result);
         } else {
             res.status(404).json({ message: "survey not found" });
         }
@@ -61,7 +61,7 @@ router.get('/survey/:id', async function (req, res) {
 });
 
 // create a survey
-router.post('/survey', async function (req, res) {
+router.post('/', async function (req, res) {
     const db = await connectToDB();
     try {
         req.body.created_at = getDate();
@@ -76,7 +76,7 @@ router.post('/survey', async function (req, res) {
 });
 
 // update a survey
-router.put('/survey/:id', async function (req, res) {
+router.put('/:id', async function (req, res) {
     const db = await connectToDB();
     try {
         delete req.body.created_at;
@@ -99,7 +99,7 @@ router.put('/survey/:id', async function (req, res) {
 });
 
 // delete a survey
-router.delete('/survey/:id', async function (req, res) {
+router.delete('/:id', async function (req, res) {
     const db = await connectToDB();
     try {
         const result = await db.collection('surveys').deleteOne(
@@ -116,3 +116,5 @@ router.delete('/survey/:id', async function (req, res) {
         await db.client.close();
     }
 });
+
+module.exports = router;

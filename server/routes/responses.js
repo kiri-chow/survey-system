@@ -5,13 +5,16 @@ const { connectToDB, ObjectId, getDate } = require('../utils/db');
 
 
 // get responses
-router.get('/responses', async function (req, res) {
+router.get('/all', async function (req, res) {
     const db = await connectToDB();
     try {
         const sort = {};
+        const query = {};
         let page = parseInt(req.query.page) || 1;
         let perPage = parseInt(req.query.perPage) || 10;
         let skip = (page - 1) * perPage;
+        delete req.query.page;
+        delete req.query.perPage
 
         // handle sort_by
         if (req.query.sort_by) {
@@ -23,12 +26,15 @@ router.get('/responses', async function (req, res) {
         }
 
         // query conditions
-        let query = req.query;
+        for (let [k, v] of Object.entries(req.query)) {
+            v = parseInt(v) || v;
+            query[k] = v;
+        }
 
         // retrieve result
         let result = await db.collection("responses").find(query).sort(sort).skip(skip).limit(perPage).toArray();
         let total = await db.collection("responses").countDocuments(query);
-        res.json({
+        res.status(200).json({
             data: result,
             total: total,
             page: page,
@@ -42,14 +48,14 @@ router.get('/responses', async function (req, res) {
 });
 
 // get a response
-router.get('/response/:id', async function (req, res) {
+router.get('/:id', async function (req, res) {
     const db = await connectToDB();
     try {
         const result = await db.collection('responses').findOne({
             _id: new ObjectId(req.params.id)
         });
         if (result) {
-            res.json(result);
+            res.status(200).json(result);
         } else {
             res.status(404).json({ message: "response not found" });
         }
@@ -77,7 +83,7 @@ async function checkEmail(survery_id, email) {
 }
 
 // create a response
-router.post('/response', async function (req, res) {
+router.post('/', async function (req, res) {
     const db = await connectToDB();
     try {
         let sid = req.body.surver_id;
@@ -161,3 +167,5 @@ router.get('/result/:sid/:qid', async function (req, res) {
         await db.client.close();
     }
 });
+
+module.exports = router;
