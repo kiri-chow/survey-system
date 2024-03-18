@@ -102,6 +102,9 @@ router.put('/:id', async function (req, res) {
 router.delete('/:id', async function (req, res) {
     const db = await connectToDB();
     try {
+        await db.collection('responses').deleteMany(
+            { survey_id: req.params.id}
+        );
         const result = await db.collection('surveys').deleteOne(
             { _id: new ObjectId(req.params.id) },
         );
