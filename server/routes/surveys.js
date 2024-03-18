@@ -12,6 +12,8 @@ router.get('/all', async function (req, res) {
         let page = parseInt(req.query.page) || 1;
         let perPage = parseInt(req.query.perPage) || 10;
         let skip = (page - 1) * perPage;
+        delete req.query.page;
+        delete req.query.perPage;
 
         // handle sort_by
         if (req.query.sort_by) {
