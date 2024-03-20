@@ -98,6 +98,6 @@ const hkAreas = [
     {id: "NT", name: "New Territories" },
 ]
 const hkAreas2Districts = {};
-hkAreas.forEach(x => hkAreas2Districts[x.name] = hkDistricts.filter(y => y.area === x.id));
+hkAreas.forEach(x => hkAreas2Districts[x.id] = hkDistricts.filter(y => y.area === x.id));
 
 export { hkDistricts, hkAreas, hkAreas2Districts };

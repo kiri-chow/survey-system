@@ -3,6 +3,19 @@ var router = express.Router();
 
 const { connectToDB, ObjectId, getDate } = require('../utils/db');
 
+function adjustField(field) {
+    if (field === 'date') {
+        return {
+            $dateToString: {
+                date: {
+                    $toDate: "$created_at"
+                },
+                format: "%Y-%m-%d"
+            }
+        };
+    }
+    return "$" + field;
+}
 
 // get responses
 router.get('/all', async function (req, res) {
@@ -130,7 +143,7 @@ router.get('/result/:sid/:qid', async function (req, res) {
         const qOptions = question.options;
 
         // group by options
-        const projection = { opt: { $toString: "$" + qTitle } };
+        const projection = { opt: { $toString: "$" + questionId } };
         const groupId = { option: "$opt" };
         if (groups) {
             groups = groups.split(',');
@@ -144,6 +157,9 @@ router.get('/result/:sid/:qid', async function (req, res) {
         const pipeline = [
             { $match: { survey_id: surverId } },
         ];
+        if (question.type === 'checkbox') {
+            pipeline.push({ $unwind: "$" + questionId })
+        }
         pipeline.push({ $project: projection });
         pipeline.push({ $group: { _id: groupId, count: { $count: {} } } });
 
