@@ -172,7 +172,7 @@ router.get('/result/:sid/:qid', async function (req, res) {
                 title: question.title,
                 surveyTitle: survey.title,
                 data: result,
-                options: qOptions,
+                option: qOptions,
             });
         } else {
             res.status(404).json({ message: "Page not found" });

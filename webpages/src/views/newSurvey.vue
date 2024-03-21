@@ -1,8 +1,6 @@
 <script setup>
 import { onMounted, ref, computed } from 'vue';
 import { useRoute, useRouter } from "vue-router";
-import { hkAreas, hkAreas2Districts } from '../hkDistricts';
-import PieChart from '../components/PieChart.vue'
 
 
 const route = useRoute();
@@ -48,46 +46,59 @@ async function submit() {
 
 </script>
 <template>
-    <main>
-        <section class="survey-info">
-            <o-field label="Title">
-                <o-input v-model="survey.title" />
-            </o-field>
-            <o-field label="Description">
-                <o-input v-model="survey.description" type="textarea" />
-            </o-field>
-            <o-field label="Named">
-                <o-switch v-model="survey.named">{{ survey.named ? "Yes" : "No" }}</o-switch>
-            </o-field>
-        </section>
-        <section class="survey-questions">
-            <div v-for="[qid, question] in Object.entries(questions)" class="question">
-                <div class="row">
-                    <h5 class="float-start">{{ `Question ${qid}` }}</h5>
-                    <o-button @click="deleteQuestion(qid)">Delete</o-button>
+    <main class="row d-flex justify-content-center">
+        <div id="#survey" class="survey-body mx-3 my-2 px-3 py-2 col-10 col-lg-5">
+            <section class="survey-info">
+                <h6>Question Title</h6>
+                <o-field>
+                    <o-input v-model="survey.title" placeholder="The title of the survey..."/>
+                </o-field>
+                <h6>Description</h6>
+                <o-field>
+                    <o-input v-model="survey.description" type="textarea" placeholder="Please describe your survey..."/>
+                </o-field>
+                <h6>Named</h6>
+                <o-field label="Do you want to record their email?">
+                    <o-switch v-model="survey.named">{{ survey.named ? "Yes" : "No" }}</o-switch>
+                </o-field>
+                <hr/>
+            </section>
+            <section class="survey-questions">
+                <div v-for="[qid, question] in Object.entries(questions)" class="question mb-2">
+                    <div class="d-flex justify-content-between mb-2">
+                        <h5>{{ `Question ${parseInt(qid) + 1}` }}</h5>
+                        <o-button @click="deleteQuestion(qid)" variant="danger" disabled>Delete</o-button>
+                    </div>
+    
+                    <h6>Question Title</h6>
+                    <o-field>
+                        <o-input v-model="questions[qid].title" placeholder="The title of the question"/>
+                    </o-field>
+                    <h6>Question Description</h6>
+                    <o-field>
+                        <o-input v-model="questions[qid].description" type="textarea" placeholder="Please describe your question..."/>
+                    </o-field>
+                    <h6>Required</h6>
+                    <o-field label="Is it a required question?">
+                        <o-switch v-model="questions[qid].required">{{ questions[qid].required ? "Yes" : "No" }}</o-switch>
+                    </o-field>
+                    <h6>Question Types</h6>
+                    <o-field>
+                        <o-select v-model="questions[qid].type" placeholder="Select a Type">
+                            <option v-for="type in questionTypes" :value="type.toLowerCase()">{{ type }}</option>
+                        </o-select>
+                    </o-field>
+                    <h6>Question Options</h6>
+                    <o-field>
+                        <o-taginput v-model="options[qid]" icon="tag" placeholder="Add an option"
+                            aria-close-label="Delete this option" />
+                    </o-field>
+                    <hr/>
                 </div>
-
-                <o-field label="Title">
-                    <o-input v-model="questions[qid].title" />
-                </o-field>
-                <o-field label="Description">
-                    <o-input v-model="questions[qid].description" type="textarea" />
-                </o-field>
-                <o-field label="Required or not">
-                    <o-switch v-model="questions[qid].required">{{ questions[qid].required ? "Yes" : "No" }}</o-switch>
-                </o-field>
-                <o-field label="Question types">
-                    <o-select v-model="questions[qid].type" placeholder="Select a Type">
-                        <option v-for="type in questionTypes" :value="type.toLowerCase()">{{ type }}</option>
-                    </o-select>
-                </o-field>
-                <o-field label="Add some options">
-                    <o-taginput v-model="options[qid]" icon="tag" placeholder="Add an option"
-                        aria-close-label="Delete this option" />
-                </o-field>
-            </div>
-        </section>
-        <button @click="addQuestion()">add</button>
-        <button @click="submit()" type="submit">Submit</button>
+            </section>
+            <o-button class="w-100 mb-2" @click="addQuestion()" variant="primary">add</o-button>
+            <hr/>
+            <o-button class="w-100 mb-2" @click="submit()" variant="success">Submit</o-button>
+        </div>
     </main>
 </template>

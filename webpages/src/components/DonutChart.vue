@@ -26,20 +26,19 @@ async function setChart() {
   series.value = [];
   data.data.forEach((x) => { series.value.push(x.count) });
 
-  // set options
+  // set optionsS
   options.value = {
-    title: { text: data.title },
-    labels: data.options,
+    labels: data['option'],
     plotOptions: {
       pie: {
         donut: {
-          size: "60%",
+          size: "50%",
           labels: {
             show: true,
             total: {
               show: true,
               color: '#373737',
-              fontSize: '25px',
+              fontSize: '1.5rem',
             }
           }
         }

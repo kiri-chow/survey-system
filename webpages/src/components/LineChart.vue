@@ -13,6 +13,10 @@ const props = defineProps({
   },
   groupBy: {
     type: String,
+  },
+  accumulated: {
+    default: true,
+    type: Boolean,
   }
 });
 
@@ -20,40 +24,47 @@ const options = ref({});
 const series = ref([]);
 
 
+function accumulate(array) {
+  if (props.accumulated) {
+    for (let i = 0; i < array.length - 1; i++) {
+      array[i + 1] += array[i];
+    }
+  }
+  return array;
+}
+
+
 async function setChart() {
   const data = await getData(props.surveyId, props.questionId, props.groupBy);
-
-  series.value = convertSeries(data, props.groupBy);
+  const [newSeries, categories] = convertSeries(data, { column: props.groupBy, groupBy: 'option' });
+  newSeries.forEach(x => { accumulate(x.data) });
+  series.value = newSeries;
   options.value = {
     chart: {
-      type: 'bar',
-    },
-    title: {
-      text: data.title,
+      type: 'line',
     },
     plotOptions: {
       bar: {
         horizontal: false,
         columnWidth: '55%',
         endingShape: 'rounded',
-        distributed: props.groupBy? false : true,
+        distributed: props.groupBy ? false : true,
       },
     },
     xaxis: {
-      categories: data.options,
+      categories: categories,
     },
   };
 }
 
 onMounted(async () => {
   await setChart();
-  console.log(series.value);
 });
 
 </script>
 
 <template>
   <div>
-    <apexchart type="bar" :options="options" :series="series" />
+    <apexchart type="line" :options="options" :series="series" />
   </div>
 </template>

@@ -1,6 +1,6 @@
 <script setup>
 import { onMounted, ref } from 'vue';
-import { useRoute, useRouter } from "vue-router";
+import { routeLocationKey, useRoute, useRouter } from "vue-router";
 
 
 const route = useRoute();
@@ -8,7 +8,8 @@ const router = useRouter();
 
 const surveys = ref({});
 const page = ref(1);
-const perPage = ref(20);
+const perPage = ref(10);
+const total = ref(1);
 const sortField = ref("created_at");
 const sortOrder = ref("desc");
 
@@ -24,18 +25,25 @@ async function getSurveys() {
     ).then(
         (res) => res.json()
     ).then(
-        (json) => {
-            surveys.value = json.data;
+        (data) => {
+            surveys.value = data.data;
+            page.value = data.page;
+            perPage.value = data.perPage;
+            total.value = data.total;
         }
     ).catch((err) => { console.error(err); })
 }
 
-
-async function deleteSurvey(event) {
+function getButton(event) {
     let button = event.target;
     while (button.type !== "button") {
         button = button.parentNode;
     }
+    return button
+}
+
+async function deleteSurvey(event) {
+    const button = getButton(event);
     const name = button.name;
     const id = button.id;
     if (confirm(`Do you really want to delete survey: ${name}?`)) {
@@ -46,6 +54,19 @@ async function deleteSurvey(event) {
     }
 }
 
+function enterSurvey(event) {
+    const button = getButton(event);
+    // const name = button.name;
+    const id = button.id;
+    router.push(`/survey/${id}`);
+}
+
+function enterResult(event) {
+    const button = getButton(event);
+    // const name = button.name;
+    const id = button.id;
+    router.push(`/survey/${id}?submitted=true`);
+}
 
 onMounted(async () => {
     await getSurveys();
@@ -53,18 +74,35 @@ onMounted(async () => {
 
 </script>
 <template>
-    <main>
-        <div>
-            <o-button><RouterLink :to="`/survey`">New</RouterLink></o-button>
-        </div>
-        <section v-for="survey in surveys" class="survey-info">
+    <main class="row justify-content-center">
+        <div v-for="survey in surveys" class="survey-body mx-3 my-2 px-3 py-2 col-10 col-lg-8">
             <h2 class="card-title">
-                <RouterLink :to="`/survey/${survey._id}`" :prop="survey">{{ survey.title }}</RouterLink>
+                <RouterLink :to="`/survey/${survey._id}`">{{ survey.title }}</RouterLink>
             </h2>
             <p class="card-text"> {{ survey.description }}</p>
-            <p>Created At {{ survey.created_at }}</p>
-            <p>Modified At {{ survey.modified_at }}</p>
-            <o-button @click="deleteSurvey" :id="survey._id" :name="survey.title" label="Delete" variant="danger" />
-        </section>
+            <div class="row col-12 d-flex justify-content-between align-items-center">
+                <p class="col-12 col-lg-6 text-center text-lg-start">
+                    <span class="fw-bold">Created At</span>
+                    {{ new Date(survey.created_at).toLocaleString() }}
+                </p>
+                <p class="col-12 col-lg-6 text-center text-lg-end">
+                    <span class="fw-bold">Modified At</span>
+                    {{ new Date(survey.modified_at).toLocaleString() }}
+                </p>
+            </div>
+            <div class="col-12 d-flex justify-content-evenly">
+                <o-button class="mx-1" @click="enterSurvey" :id="survey._id" :name="survey.title" label="Enter"
+                    variant="primary" />
+                <o-button class="mx-1" @click="enterResult" :id="survey._id" :name="survey.title" label="Result"
+                    variant="success" />
+                <o-button class="mx-1" @click="deleteSurvey" :id="survey._id" :name="survey.title" label="Delete"
+                    variant="danger" disabled/>
+            </div>
+        </div>
+        <div class="justify-content-center d-flex">
+            <o-pagination class="d-flex-contain justify-content-center" v-model:current="page" :total="total"
+            :range-before="1" :range-after="2" order="center" size="small" :simple="false" :per-page="perPage"
+            icon-prev="chevron-left" icon-next="chevron-right" />
+        </div>
     </main>
 </template>
