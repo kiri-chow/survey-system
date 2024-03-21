@@ -40,10 +40,13 @@ router.get('/all', async function (req, res) {
 
         // query conditions
         for (let [k, v] of Object.entries(req.query)) {
-            v = parseInt(v) || v;
+            let vInt = parseInt(v);
+            if (vInt.toString() === v){
+                v = vInt;
+            }
             query[k] = v;
         }
-
+        console.log(query);
         // retrieve result
         let result = await db.collection("responses").find(query).sort(sort).skip(skip).limit(perPage).toArray();
         let total = await db.collection("responses").countDocuments(query);
@@ -79,32 +82,10 @@ router.get('/:id', async function (req, res) {
     }
 });
 
-// check if the email exists in the given survey
-async function checkEmail(survery_id, email) {
-    const db = await connectToDB();
-    try {
-        const result = await db.collection("responses").findOne({
-            survery_id: survery_id,
-            email: email,
-        });
-        return Boolean(result);
-    } catch (err) {
-        return false;
-    } finally {
-        await db.client.close();
-    }
-}
-
 // create a response
 router.post('/', async function (req, res) {
     const db = await connectToDB();
     try {
-        let sid = req.body.surver_id;
-        let email = req.body.email;
-        if (email && checkEmail(sid, email)) {
-            res.status(400).json({ message: "you can not submit twice" });
-        }
-
         // insert
         req.body.created_at = getDate();
         req.body.modified_at = req.body.created_at;

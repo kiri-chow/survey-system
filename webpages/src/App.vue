@@ -10,11 +10,11 @@ function createSurvey() {
 </script>
 
 <template>
-  <header class="px-3 py-2 d-flex justify-content-around justify-content-lg-between align-items-center">
+  <header class="px-3 py-2 d-flex justify-content-between align-items-center">
     <h1>
       <RouterLink class="app-title" to="/">Super Survey System</RouterLink>
     </h1>
-    <o-button class="mx-3" @click="createSurvey" variant="primary">
+    <o-button class="mx-1" @click="createSurvey" variant="primary">
       <o-icon icon="plus" variant="white" />
     </o-button>
   </header>

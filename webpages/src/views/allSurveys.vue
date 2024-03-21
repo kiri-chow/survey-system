@@ -6,6 +6,7 @@ import { routeLocationKey, useRoute, useRouter } from "vue-router";
 const route = useRoute();
 const router = useRouter();
 
+const isAdmin = ref(route.query.admin === 'true');
 const surveys = ref({});
 const page = ref(1);
 const perPage = ref(10);
@@ -49,16 +50,17 @@ async function deleteSurvey(event) {
     if (confirm(`Do you really want to delete survey: ${name}?`)) {
         fetch(`/api/surveys/${id}`, { method: "DELETE" }).then(
             (res) => res.json
-        ).then((json) => { alert(json.message); }
+        ).then((json) => { "Survey deleted!" }
         ).catch((err) => { console.error(err); })
     }
+    surveys.value = surveys.value.filter(x => x._id !== id);
 }
 
-function enterSurvey(event) {
+function editSurvey(event) {
     const button = getButton(event);
     // const name = button.name;
     const id = button.id;
-    router.push(`/survey/${id}`);
+    router.push(`/survey?surveyId=${button.id}`);
 }
 
 function enterResult(event) {
@@ -68,6 +70,12 @@ function enterResult(event) {
     router.push(`/survey/${id}?submitted=true`);
 }
 
+const onPageChange = (p) => {
+    page.value = p;
+    getSurveys();
+};
+
+
 onMounted(async () => {
     await getSurveys();
 })
@@ -75,7 +83,7 @@ onMounted(async () => {
 </script>
 <template>
     <main class="row justify-content-center">
-        <div v-for="survey in surveys" class="survey-body mx-3 my-2 px-3 py-2 col-10 col-lg-8">
+        <div v-for="survey in surveys" class="survey-body mx-3 my-2 px-3 py-2 col-10 col-lg-5">
             <h2 class="card-title">
                 <RouterLink :to="`/survey/${survey._id}`">{{ survey.title }}</RouterLink>
             </h2>
@@ -91,16 +99,16 @@ onMounted(async () => {
                 </p>
             </div>
             <div class="col-12 d-flex justify-content-evenly">
-                <o-button class="mx-1" @click="enterSurvey" :id="survey._id" :name="survey.title" label="Enter"
+                <o-button class="mx-1" @click="editSurvey" :id="survey._id" :name="survey.title" label="Edit"
                     variant="primary" />
                 <o-button class="mx-1" @click="enterResult" :id="survey._id" :name="survey.title" label="Result"
                     variant="success" />
                 <o-button class="mx-1" @click="deleteSurvey" :id="survey._id" :name="survey.title" label="Delete"
-                    variant="danger" disabled/>
+                    variant="danger" :disabled="!isAdmin"/>
             </div>
         </div>
         <div class="justify-content-center d-flex">
-            <o-pagination class="d-flex-contain justify-content-center" v-model:current="page" :total="total"
+            <o-pagination @click="onPageChange" class="d-flex-contain justify-content-center" v-model:current="page" :total="total"
             :range-before="1" :range-after="2" order="center" size="small" :simple="false" :per-page="perPage"
             icon-prev="chevron-left" icon-next="chevron-right" />
         </div>

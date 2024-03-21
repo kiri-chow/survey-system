@@ -1,10 +1,11 @@
 <script setup>
-import { onMounted, ref } from 'vue';
+import { onMounted, onUpdated, ref } from 'vue';
 import { useRoute, useRouter } from "vue-router";
 import { hkAreas, hkAreas2Districts } from '../hkDistricts';
 import DonutChart from '../components/DonutChart.vue'
 import BarChart from '../components/BarChart.vue'
 import LineChart from '../components/LineChart.vue'
+import ResponsesTable from '../components/ResponsesTable.vue'
 
 
 const route = useRoute();
@@ -59,12 +60,15 @@ onMounted(async () => {
     if (route.params.id) {
         await getSurvey();
     }
-
 })
 
-async function checkEmail() {
-
-}
+onUpdated(() => {
+    // scroll into result
+    const result = document.getElementById('result');
+    if ( result ) {
+        result.scrollIntoView();
+    }
+})
 
 function updateLocation(event) {
     const [areaId, districtId] = event.target.value.split('.');
@@ -74,7 +78,8 @@ function updateLocation(event) {
 
 async function submit() {
     // check required
-    for (let result of responseResult.value) {
+    if (!submitted.value) {
+        for (let result of responseResult.value) {
         if (result == null) {
             alert("Please answer all required questions!");
             return;
@@ -95,8 +100,9 @@ async function submit() {
         },
         body: JSON.stringify(toSubmit),
     });
-    alert("Your response is submitted!");
     submitted.value = true;
+    alert("Your response is submitted!");
+    }
 }
 
 function toggleResult() {
@@ -106,17 +112,19 @@ function toggleResult() {
 </script>
 <template>
     <main class="row d-flex justify-content-center">
-        <div id="#survey" class="survey-body mx-3 my-2 px-3 py-2 col-10 col-lg-5">
+        <div id="survey" class="survey-body mx-3 my-2 px-3 py-2 col-10 col-lg-5">
             <section class="survey-info row">
                 <h4 class="">{{ survey.title }}</h4>
                 <p class=""> {{ survey.description }}</p>
             </section>
             <section class="personal-info">
-                <o-field v-if="survey.named" label="Email">
-                    <o-input v-model="responseInfo.email" name="email" type="email" placeholder="nobody@nowhere.com"
-                        :disabled="submitted" icon="email" required />
-                </o-field>
-
+                <div v-if="survey.named">
+                    <h6>Email<span class="text-danger">*</span></h6>
+                    <o-field >
+                        <o-input v-model="responseInfo.email" name="email" type="email" placeholder="nobody@nowhere.com"
+                            :disabled="submitted" icon="email" required />
+                    </o-field>
+                </div>
                 <h6>Place of Residence<span class="text-danger">*</span></h6>
                 <o-field>
                     <o-select @change="updateLocation" placeholder="Select a district" :disabled="submitted" required>
@@ -127,6 +135,7 @@ function toggleResult() {
                         </optgroup>
                     </o-select>
                 </o-field>
+                <hr/>
             </section>
             <section class="survey-questions">
                 <div v-for="[qid, question] in questions" class="question mt-1 mb-2">
@@ -154,11 +163,11 @@ function toggleResult() {
                     </o-field>
                 </div>
             </section>
-            <div class="d-flex justify-content-between">
+            <div id="pre-result" class="d-flex justify-content-between">
                 <o-button @click="submit" :disabled="submitted" variant="success" class="mx-1 my-2">Submit</o-button>
             </div>
         </div>
-        <div id="#result" v-if="submitted" class="survey-body mx-3 my-2 px-3 py-2 col-10 col-lg-5">
+        <div id="result" v-if="submitted" class="survey-body mx-3 my-2 px-3 py-2 col-10 col-lg-5">
             <div class="row d-flex justify-content-between">
                 <h4>Responses Summary</h4>
             </div>
@@ -180,7 +189,7 @@ function toggleResult() {
                 </div>
             </div>
             <div v-else class="result-table">
-
+                <ResponsesTable :surveyId="survey._id"/>
             </div>
 
         </div>
