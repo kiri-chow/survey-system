@@ -52,8 +52,8 @@ async function deleteSurvey(event) {
             (res) => res.json
         ).then((json) => { "Survey deleted!" }
         ).catch((err) => { console.error(err); })
+        surveys.value = surveys.value.filter(x => x._id !== id);
     }
-    surveys.value = surveys.value.filter(x => x._id !== id);
 }
 
 function editSurvey(event) {
@@ -108,7 +108,7 @@ onMounted(async () => {
             </div>
         </div>
         <div class="justify-content-center d-flex">
-            <o-pagination @click="onPageChange" class="d-flex-contain justify-content-center" v-model:current="page" :total="total"
+            <o-pagination @change="onPageChange" class="d-flex-contain justify-content-center" v-model:current="page" :total="total"
             :range-before="1" :range-after="2" order="center" size="small" :simple="false" :per-page="perPage"
             icon-prev="chevron-left" icon-next="chevron-right" />
         </div>

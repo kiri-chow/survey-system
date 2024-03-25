@@ -11,8 +11,10 @@ import ResponsesTable from '../components/ResponsesTable.vue'
 const route = useRoute();
 const router = useRouter();
 
+let submitting = false;
 const submitted = ref(route.query.submitted == "true");
 const showCharts = ref(true);
+
 const survey = ref({});
 const questions = ref([]);
 const charts = ref([]);
@@ -54,6 +56,7 @@ function convertCharts(data) {
         }
     }
     charts.value = data.charts;
+    showCharts.value = Boolean(charts.value.length);
 }
 
 onMounted(async () => {
@@ -77,14 +80,11 @@ function updateLocation(event) {
 };
 
 async function submit() {
-    // check required
-    if (!submitted.value) {
-        for (let result of responseResult.value) {
-        if (result == null) {
-            alert("Please answer all required questions!");
-            return;
-        }
+    if (submitting) {
+        alert("Submitting, please wait...");
+        return;
     }
+    submitting = true;
 
     // build data to submit
     const toSubmit = Object.assign(responseInfo.value);
@@ -93,16 +93,21 @@ async function submit() {
         toSubmit[qid] = result;
     }
 
-    await fetch(`/api/responses`, {
+    const res = await fetch(`/api/responses`, {
         method: "POST",
         headers: {
             "Content-Type": "application/json",
         },
         body: JSON.stringify(toSubmit),
     });
+    submitting = false;
+    if (!res.ok) {
+        const json = await res.json();
+        alert(json.message);
+        return;
+    }
     submitted.value = true;
     alert("Your response is submitted!");
-    }
 }
 
 function toggleResult() {
@@ -112,7 +117,7 @@ function toggleResult() {
 </script>
 <template>
     <main class="row d-flex justify-content-center">
-        <div id="survey" class="survey-body mx-3 my-2 px-3 py-2 col-10 col-lg-5">
+        <form id="survey" class="survey-body mx-3 my-2 px-3 py-2 col-10 col-lg-5" @submit.prevent="submit">
             <section class="survey-info row">
                 <h4 class="">{{ survey.title }}</h4>
                 <p class=""> {{ survey.description }}</p>
@@ -121,13 +126,13 @@ function toggleResult() {
                 <div v-if="survey.named">
                     <h6>Email<span class="text-danger">*</span></h6>
                     <o-field >
-                        <o-input v-model="responseInfo.email" name="email" type="email" placeholder="nobody@nowhere.com"
+                        <o-input v-model="responseInfo.email" type="email" placeholder="nobody@nowhere.com"
                             :disabled="submitted" icon="email" required />
                     </o-field>
                 </div>
                 <h6>Place of Residence<span class="text-danger">*</span></h6>
-                <o-field>
-                    <o-select @change="updateLocation" placeholder="Select a district" :disabled="submitted" required>
+                <o-field label="Please select a district">
+                    <o-select @change="updateLocation" :disabled="submitted" required>
                         <optgroup v-for="area in hkAreas" :label="area.name">
                             <option v-for="district in hkAreas2Districts[area.id]" :value="`${area.id}.${district.id}`">
                                 {{
@@ -157,16 +162,16 @@ function toggleResult() {
                                 :native-value="i" :label="o" :disabled="submitted" />
                         </div>
                         <div v-else class="">
-                            <o-radio v-for="[i, o] in question.options.entries()" :label="o" :native-value="i"
+                            <o-radio :name="`question_${qid+1}`" v-for="[i, o] in question.options.entries()" :label="o" :native-value="i"
                                 v-model="responseResult[qid]" :disabled="submitted" :required="question.required" />
                         </div>
                     </o-field>
                 </div>
             </section>
             <div id="pre-result" class="d-flex justify-content-between">
-                <o-button @click="submit" :disabled="submitted" variant="success" class="mx-1 my-2">Submit</o-button>
+                <o-button type="submit" :disabled="submitted" variant="success" class="mx-1 my-2">Submit</o-button>
             </div>
-        </div>
+        </form>
         <div id="result" v-if="submitted" class="survey-body mx-3 my-2 px-3 py-2 col-10 col-lg-5">
             <div class="row d-flex justify-content-between">
                 <h4>Responses Summary</h4>
