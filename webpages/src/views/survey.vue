@@ -1,5 +1,5 @@
 <script setup>
-import { onMounted, onUpdated, ref } from 'vue';
+import { onMounted, ref } from 'vue';
 import { useRoute, useRouter } from "vue-router";
 import { hkAreas, hkAreas2Districts } from '../hkDistricts';
 import DonutChart from '../components/DonutChart.vue'
@@ -42,6 +42,7 @@ async function getSurvey() {
                 }
                 responseResult.value.push(response);
             }
+            jumpToResult();
         }
     ).catch((err) => { console.error(err); })
 }
@@ -62,14 +63,6 @@ function convertCharts(data) {
 onMounted(async () => {
     if (route.params.id) {
         await getSurvey();
-    }
-})
-
-onUpdated(() => {
-    // scroll into result
-    const result = document.getElementById('result');
-    if ( result ) {
-        result.scrollIntoView();
     }
 })
 
@@ -107,11 +100,24 @@ async function submit() {
         return;
     }
     submitted.value = true;
+    jumpToResult();
     alert("Your response is submitted!");
 }
 
-function toggleResult() {
-    showCharts.value = !showCharts.value;
+
+// scroll into result
+async function jumpToResult() {
+    if (!submitted){
+        return;
+    }
+    let count = 0;
+    let result;
+    while (!result && count < 10) {
+        result = document.getElementById('result');
+        count += 1;
+        await new Promise(resolve => setTimeout(resolve, 0.5));
+    }
+    result.scrollIntoView();
 }
 
 </script>
