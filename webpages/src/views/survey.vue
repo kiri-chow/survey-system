@@ -117,7 +117,9 @@ async function jumpToResult() {
         count += 1;
         await new Promise(resolve => setTimeout(resolve, 0.5));
     }
-    result.scrollIntoView();
+    if (result) {
+        result.scrollIntoView();
+    }
 }
 
 </script>
